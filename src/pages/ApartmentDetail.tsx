@@ -170,6 +170,12 @@ const ApartmentDetail = () => {
                 Request Booking
               </Button>
 
+              <Link to={`/apartment/${apartment.slug}/unbook`}>
+                <Button variant="outline" size="lg" className="w-full mt-2">
+                  Unbook dates
+                </Button>
+              </Link>
+
               <p className="text-center text-sm text-muted-foreground">
                 Contact us for availability and booking
               </p>

@@ -16,6 +16,9 @@ const Navigation = () => {
     { href: "#contact", label: t.nav.contact },
   ];
 
+  // Show admin link in development for quick access
+  const showAdminLink = typeof import.meta !== 'undefined' && (import.meta as any).env && (import.meta as any).env.DEV;
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-card/80 backdrop-blur-md border-b border-border">
       <div className="container mx-auto px-4">
@@ -39,6 +42,11 @@ const Navigation = () => {
                 {link.label}
               </a>
             ))}
+            {showAdminLink && (
+              <a href="/admin/login" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
+                Admin
+              </a>
+            )}
             <div className="h-6 w-px bg-border" />
             <SocialLinks size="sm" />
             <LanguageSwitcher />
@@ -74,6 +82,11 @@ const Navigation = () => {
                   {link.label}
                 </a>
               ))}
+              {showAdminLink && (
+                <a href="/admin/login" className="text-muted-foreground hover:text-foreground transition-colors font-medium py-2" onClick={() => setIsMenuOpen(false)}>
+                  Admin
+                </a>
+              )}
               <div className="pt-4 border-t border-border">
                 <SocialLinks size="sm" />
               </div>

@@ -257,3 +257,40 @@ export const getSeasonLabel = (apartment: Apartment, date: Date): string => {
   );
   return priceRange?.label || 'Standard';
 };
+
+export const unbookRange = (apartment: Apartment, from: Date, to: Date): void => {
+  const normalize = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const f = normalize(from);
+  const t = normalize(to);
+
+  const result: BookedDate[] = [];
+
+  for (const booking of apartment.bookedDates) {
+    const bFrom = normalize(booking.from);
+    const bTo = normalize(booking.to);
+
+    if (bTo < f || bFrom > t) {
+      // No overlap
+      result.push({ from: new Date(bFrom), to: new Date(bTo) });
+      continue;
+    }
+
+    // Overlap exists - keep left segment if any
+    if (bFrom < f) {
+      const leftTo = new Date(f);
+      leftTo.setDate(leftTo.getDate() - 1);
+      result.push({ from: new Date(bFrom), to: leftTo });
+    }
+
+    // Keep right segment if any
+    if (bTo > t) {
+      const rightFrom = new Date(t);
+      rightFrom.setDate(rightFrom.getDate() + 1);
+      result.push({ from: rightFrom, to: new Date(bTo) });
+    }
+
+    // If fully covered by unbooking range, booking is removed
+  }
+
+  apartment.bookedDates = result;
+};
