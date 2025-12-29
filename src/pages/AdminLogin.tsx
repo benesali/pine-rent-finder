@@ -8,6 +8,11 @@ import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
 import { setToken } from "@/lib/auth";
 
+const FAKE_ADMIN = {
+  email: "admin@local.dev",
+  password: "admin123",
+};
+
 const AdminLogin = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -15,39 +20,51 @@ const AdminLogin = () => {
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const res = await fetch("/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+  e.preventDefault();
+  setLoading(true);
 
-      if (!res.ok) {
-        if (res.status === 401) {
-          toast({ title: "Invalid credentials" });
-        } else {
-          toast({ title: "Login failed" });
-        }
-        setLoading(false);
+  try {
+    // ✅ DEV fake login
+    if (import.meta.env.DEV) {
+      if (email === FAKE_ADMIN.email && password === FAKE_ADMIN.password) {
+        setToken("fake-dev-token");
+        toast({ title: "Logged in (DEV)", description: "Fake admin access" });
+        navigate("/admin/calendar");
         return;
       }
-
-      const data = await res.json();
-      if (data.access_token) {
-        setToken(data.access_token);
-        toast({ title: "Logged in", description: "Admin access granted" });
-        navigate("/admin/calendar");
-      } else {
-        toast({ title: "Unexpected response" });
-      }
-    } catch (err) {
-      toast({ title: "Network error" });
-    } finally {
-      setLoading(false);
     }
-  };
+
+    // ⬇️ reálný backend login
+    const res = await fetch("/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+
+    if (!res.ok) {
+      toast({
+        title: res.status === 401 ? "Invalid credentials" : "Login failed",
+      });
+      return;
+    }
+
+    const data = await res.json();
+    if (!data.access_token) {
+      toast({ title: "Unexpected response" });
+      return;
+    }
+
+    setToken(data.access_token);
+    toast({ title: "Logged in", description: "Admin access granted" });
+    navigate("/admin/calendar");
+
+  } catch {
+    toast({ title: "Network error" });
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <main className="min-h-screen bg-background">
